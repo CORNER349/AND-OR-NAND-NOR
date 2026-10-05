@@ -470,7 +470,7 @@ def adaline_nand():
         plt.grid()
   
         plt.show()
-# Llamar a la función
+
 adaline_and()
 adaline_or()
 adaline_nand()
