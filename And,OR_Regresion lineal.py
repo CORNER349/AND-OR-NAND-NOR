@@ -2,278 +2,211 @@ import random
 import matplotlib.pyplot as plt
 
 
-def regresion_lineal(nombre, datos):
+class RegresionLineal:
 
-    mu = 0.1
-    mu_inicial = mu
+    def __init__(self, nombre, datos):
 
-    error_objetivo = 0.1
-    max_iteraciones = 1000
+        self.nombre = nombre
+        self.datos = datos
 
-    aumento = 1.05
-    reduccion = 0.5
+        self.error_objetivo = 0.1
+        self.mu = 0.1
 
+        random.seed(10)
 
-    random.seed(10)
+        self.w1 = random.uniform(-1, 1)
+        self.w2 = random.uniform(-1, 1)
+        self.b = random.uniform(-1, 1)
 
-    w1 = random.uniform(-1, 1)
-    w2 = random.uniform(-1, 1)
-    b = random.uniform(-1, 1)
-
-    w1_inicial = w1
-    w2_inicial = w2
-    b_inicial = b
-
-    print("REGRESIÓN LINEAL -", nombre)
-
-    print("\nPESOS INICIALES")
-    print("w1 =", round(w1, 4))
-    print("w2 =", round(w2, 4))
-    print("b  =", round(b, 4))
-
-    errores = []
-    valores_mu = []
-    iteraciones = []
-
-    error_anterior = None
+        self.iteraciones = []
+        self.errores = []
+        self.valores_mu = []
 
 
-    for epoca in range(1, max_iteraciones + 1):
+    def entrenar(self):
 
-        # Gradientes
-        gradiente_w1 = 0
-        gradiente_w2 = 0
-        gradiente_b = 0
+    
+        print("COMPUERTA", self.nombre)
 
-        error_total = 0
+        print("\nPESOS INICIALES")
+        print("w1 =", round(self.w1, 4))
+        print("w2 =", round(self.w2, 4))
+        print("b  =", round(self.b, 4))
 
-        n = len(datos)
+        for epoca in range(1, 101):
+
+            error_total = 0
+
+            for x1, x2, esperado in self.datos:
+
+                salida = (
+                    self.b
+                    + self.w1 * x1
+                    + self.w2 * x2
+                )
+
+                error = esperado - salida
+
+                error_total += error ** 2
+
+                self.w1 += self.mu * error * x1
+                self.w2 += self.mu * error * x2
+                self.b += self.mu * error
+
+            mse = error_total / len(self.datos)
+
+            self.iteraciones.append(epoca)
+            self.errores.append(mse)
+            self.valores_mu.append(self.mu)
+
+            if len(self.errores) > 1:
+
+                if self.errores[-1] < self.errores[-2]:
+                    self.mu *= 1.05
+                else:
+                    self.mu *= 0.7
+
+            if mse <= self.error_objetivo:
+                break
 
 
-        for x1, x2, esperado in datos:
+    def mostrar_pesos(self):
 
-            prediccion = (
-                b
-                + w1 * x1
-                + w2 * x2
+        print("\nPESOS FINALES")
+
+        print("w1 =", round(self.w1, 4))
+        print("w2 =", round(self.w2, 4))
+        print("b  =", round(self.b, 4))
+
+        print("Mu final =", round(self.mu, 4))
+
+
+    def mostrar_resultados(self):
+
+        print("\nCOMPARACIÓN DE RESULTADOS")
+
+        print("x1\tx2\tEsperado\tSalida")
+
+        for x1, x2, esperado in self.datos:
+
+            salida = (
+                self.b
+                + self.w1 * x1
+                + self.w2 * x2
             )
 
-            error = prediccion - esperado
-
-            # Error cuadrático
-            error_total += error ** 2
-
-
-            # Gradientes del MSE
-
-            gradiente_w1 += (
-                2 * error * x1
-            ) / n
-
-            gradiente_w2 += (
-                2 * error * x2
-            ) / n
-
-            gradiente_b += (
-                2 * error
-            ) / n
+            print(
+                x1,
+                "\t",
+                x2,
+                "\t",
+                esperado,
+                "\t\t",
+                round(salida, 4)
+            )
 
 
-        mse = error_total / n
+    def mostrar_ecuacion(self):
 
-
-        errores.append(mse)
-
-        valores_mu.append(mu)
-
-        iteraciones.append(epoca)
-
-
-        if error_anterior is not None:
-            if mse < error_anterior:
-                mu = mu * aumento
-            else:
-
-                mu = mu * reduccion
-
-
-        error_anterior = mse
-
-        w1 = w1 - mu * gradiente_w1
-
-        w2 = w2 - mu * gradiente_w2
-
-        b = b - mu * gradiente_b
-
+        print("\nECUACIÓN DE REGRESIÓN")
 
         print(
-            "Iteración:", epoca,
-            "| Error:", round(mse, 6),
-            "| Mu:", round(mu, 6)
+            "y =",
+            round(self.b, 4),
+            "+",
+            round(self.w1, 4),
+            "* x1 +",
+            round(self.w2, 4),
+            "* x2"
         )
 
-        if mse <= error_objetivo:
-            break
 
-    print("COMPARACIÓN DE PESOS")
+    def graficar_error(self):
 
-    print(
-        "w1:",
-        round(w1_inicial, 4),
-        " -> ",
-        round(w1, 4)
-    )
+        plt.figure()
 
-    print(
-        "w2:",
-        round(w2_inicial, 4),
-        " -> ",
-        round(w2, 4)
-    )
-
-    print(
-        "b :",
-        round(b_inicial, 4),
-        " -> ",
-        round(b, 4)
-    )
-
-
-    print("\nMu inicial:", mu_inicial)
-
-    print("Mu final:", round(mu, 6))
-
-    print("Iteraciones:", epoca)
-
-    print("Error final:", round(mse, 6))
-
-
-    print("SALIDA VS ESPERADO")
-   
-
-    print(
-        "X1\tX2\tPredicción\tSalida\tEsperado"
-    )
-
-
-    for x1, x2, esperado in datos:
-
-        prediccion = (
-            b
-            + w1 * x1
-            + w2 * x2
+        plt.plot(
+            self.iteraciones,
+            self.errores,
+            marker="o",
+            label="MSE"
         )
 
-        if prediccion >= 0.5:
-            salida = 1
-        else:
-            salida = 0
-
-
-        print(
-            x1,
-            "\t",
-            x2,
-            "\t",
-            round(prediccion, 4),
-            "\t\t",
-            salida,
-            "\t",
-            esperado
+        plt.axhline(
+            y=self.error_objetivo,
+            linestyle="--",
+            label="Error objetivo = 0.1"
         )
 
-    print("\nECUACIÓN DE REGRESIÓN")
+        plt.xlabel("Iteraciones")
+        plt.ylabel("Error MSE")
 
-    print(
-        "y =",
-        round(b, 4),
-        "+",
-        round(w1, 4),
-        "* x1 +",
-        round(w2, 4),
-        "* x2"
-    )
-    plt.figure()
+        plt.title(
+            "Regresión lineal - " + self.nombre
+        )
 
-    plt.plot(
-        iteraciones,
-        errores,
-        marker="o",
-        label="MSE"
-    )
+        plt.legend()
+        plt.grid()
 
-    plt.axhline(
-        y=error_objetivo,
-        linestyle="--",
-        label="Error objetivo = 0.1"
-    )
+        plt.show()
 
-    plt.xlabel("Iteraciones")
 
-    plt.ylabel("Error MSE")
+    def graficar_mu(self):
 
-    plt.title(
-        "Regresión lineal - " + nombre
-    )
+        plt.figure()
 
-    plt.legend()
+        plt.plot(
+            self.iteraciones,
+            self.valores_mu,
+            marker="o"
+        )
 
-    plt.grid()
+        plt.xlabel("Iteraciones")
+        plt.ylabel("Mu")
 
-    plt.show()
+        plt.title(
+            "Evolución del factor de aprendizaje - "
+            + self.nombre
+        )
 
-    plt.figure()
+        plt.grid()
 
-    plt.plot(
-        iteraciones,
-        valores_mu,
-        marker="o"
-    )
+        plt.show()
 
-    plt.xlabel("Iteraciones")
 
-    plt.ylabel("Mu")
+    def ejecutar(self):
 
-    plt.title(
-        "Evolución del factor de aprendizaje - "
-        + nombre
-    )
-
-    plt.grid()
-
-    plt.show()
+        self.entrenar()
+        self.mostrar_pesos()
+        self.mostrar_resultados()
+        self.mostrar_ecuacion()
+        self.graficar_error()
+        self.graficar_mu()
 
 
 and_datos = [
-
     [0, 0, 0],
-
     [0, 1, 0],
-
     [1, 0, 0],
-
     [1, 1, 1]
-
 ]
 
 or_datos = [
-
     [0, 0, 0],
-
     [0, 1, 1],
-
     [1, 0, 1],
-
     [1, 1, 1]
-
 ]
 
-regresion_lineal(
+modelo_and = RegresionLineal(
     "AND",
     and_datos
 )
 
-regresion_lineal(
+modelo_or = RegresionLineal(
     "OR",
     or_datos
 )
+modelo_and.ejecutar()
+
+modelo_or.ejecutar()
